@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PaymentGateway.DbModel
+namespace PaymentGateway.Model.DbModel
 {
     [Table("Payment")]
     public class Payment
@@ -14,6 +14,6 @@ namespace PaymentGateway.DbModel
         public string ExpiryYear { get; set; }
         public string CVV { get; set; }
         public decimal Amount { get; set; }
-        public virtual User GetUser { get; set; }
+        public virtual ApplicationUser GetUser { get; set; }
     }
 }

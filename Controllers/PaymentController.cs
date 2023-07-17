@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using PaymentGateway.Common;
 using PaymentGateway.DB;
-using PaymentGateway.DbModel;
 using PaymentGateway.Model;
+using PaymentGateway.Model.DbModel;
+using PaymentGateway.Services.Interface;
 using static PaymentGateway.Common.CommonEnum;
 
 namespace PaymentGateway.Controllers
@@ -16,165 +18,62 @@ namespace PaymentGateway.Controllers
     
     public class PaymentController : ControllerBase
     {
-        private readonly PaymentContext _payment;
+        private readonly IPaymentService _payment;
 
-        public PaymentController(PaymentContext paymentContext)
+        public PaymentController(IPaymentService payment)
         {
-            _payment = paymentContext;
+            _payment = payment;
         }
 
-        
+        //Get api/GetPayment
+        [Route("GetPayment")]
         [HttpGet]
-        public async Task<PaymentModel> GetPayment(string cardNumber)
+        public async Task<IActionResult> GetPayment(string cardNumber)
         {
-            PaymentModel payment = new PaymentModel();
-            try
+            if (!ModelState.IsValid)
             {
-                var paymentData =await _payment.Payments.Where(x => x.CardNumber == cardNumber).FirstOrDefaultAsync();
-                if (paymentData != null)
-                {
-                    payment.Id = paymentData.Id;    
-                    payment.CardNumber = paymentData.CardNumber;
-                    payment.ExpiryMonth = paymentData.ExpiryMonth;
-                    payment.ExpiryYear = paymentData.ExpiryYear;
-                    payment.CardHolderName = paymentData.CardHolderName;
-                    payment.CVV = paymentData.CVV;
-                    payment.Amount = paymentData.Amount;
-
-                }
-                else
-                {
-                   
-                }
+                return BadRequest();
             }
-            catch (Exception ex)
-            {
-            }
-            return payment;
+            var data = await _payment.GetPayment(cardNumber);
+            return Ok(data);
         }
 
+
+        //Post api/CreatePayment
+        [Route("CreatePayment")]
         [HttpPost]
-        public async Task<ApiResponse> CreatePayment([FromBody] PaymentModel payment)
+        public async Task<IActionResult> CreatePayment([FromBody] PaymentModel payment)
         {
-            ApiResponse response = new ApiResponse();
-            var paymentData = _payment.Payments.Where(x => x.CardNumber == payment.CardNumber).FirstOrDefault();
-            try
+            if (!ModelState.IsValid)
             {
-                if (paymentData == null)
-                {
-                    if (payment.Amount <= 0)
-                    {
-                        response.Code = (int)ResponseEnum.invalid_request;
-                        response.Message = "Invalid payment amount.";
-                    }
-                    else
-                    {
-                        var user = _payment.Users.FirstOrDefault(x => x.UserId == payment.UserId);
-                        if (user != null)
-                        {
-                            Payment model = new Payment()
-                            {
-                                CardNumber = payment.CardNumber,
-                                CardHolderName = payment.CardHolderName,
-                                ExpiryMonth = payment.ExpiryMonth,
-                                ExpiryYear = payment.ExpiryYear,
-                                CVV = payment.CVV,
-                                Amount = payment.Amount,
-                                GetUser = user
-                            };
-                            await _payment.Payments.AddAsync(model);
-                            if (await _payment.SaveChangesAsync() > 0)
-                            {
-                                response.Code = (int)ResponseEnum.success;
-                                response.Message = "Payment Added Successfully";
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    response.Code = (int)ResponseEnum.not_found;
-                    response.Message = "Payment Data not Found!";
-                }
+                return BadRequest();
             }
-            catch (Exception)
-            {
-
-                throw;
-            }
-            return response;
+            var data = await _payment.CreatePayment(payment);
+            return Ok(data);
         }
-        
+
+        //Put api/UpdatePayment
         [HttpPut]
-        public async Task<ApiResponse> UpdatePayment([FromBody] PaymentModel payment)
+        public async Task<IActionResult> UpdatePayment([FromBody] PaymentModel payment)
         {
-            ApiResponse response = new ApiResponse();
-            var paymentData = _payment.Payments.FirstOrDefault(x => x.CardNumber == payment.CardNumber);
-
-            try
+            if (!ModelState.IsValid)
             {
-                if (paymentData != null)
-                {
-                    if (payment.Amount <= 0)
-                    {
-                        response.Code = (int)ResponseEnum.invalid_request;
-                        response.Message = "Invalid payment amount.";
-                    }
-                    else
-                    {
-                        paymentData.Amount = payment.Amount;
-                        paymentData.CardHolderName = payment.CardHolderName;
-                        paymentData.ExpiryMonth = payment.ExpiryMonth;
-                        paymentData.ExpiryYear = payment.ExpiryYear;
-                        paymentData.CVV = payment.CVV;
-                        if (await _payment.SaveChangesAsync() > 0)
-                        {
-                            response.Code = (int)ResponseEnum.success;
-                            response.Message = "Payment Updated Successfully";
-                        }
-                    }
-                }
-                else
-                {
-                    response.Code = (int)ResponseEnum.not_found;
-                    response.Message = "Payment Data not Found!";
-                }
+                return BadRequest();
             }
-            catch (Exception)
-            {
-                throw;
-            }
-
-            return response;
+            var data = await _payment.UpdatePayment(payment);
+            return Ok(data);
         }
 
+        //Delete api/DeletePayment
         [HttpDelete]
-        public async Task<ApiResponse> DeletePayment(string cardNumber)
+        public async Task<IActionResult> DeletePayment(string cardNumber)
         {
-            ApiResponse response = new ApiResponse();
-            var paymentData = _payment.Payments.FirstOrDefault(x => x.CardNumber == cardNumber);
-            try
+            if (!ModelState.IsValid)
             {
-                if (paymentData != null)
-                {
-                    _payment.Payments.Remove(paymentData);
-                    if (await _payment.SaveChangesAsync() > 0)
-                    {
-                        response.Code = (int)ResponseEnum.success;
-                        response.Message = "Payment Deleted Successfully";
-                    }
-                }
-                else
-                {
-                    response.Code = (int)ResponseEnum.not_found;
-                    response.Message = "Payment Data not Found!";
-                }
+                return BadRequest();
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            return response;
+            var data = await _payment.DeletePayment(cardNumber);
+            return Ok(data);
         }
 
     }

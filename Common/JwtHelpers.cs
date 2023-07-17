@@ -21,7 +21,7 @@ namespace PaymentGateway.Common
                 var JWToken = new JwtSecurityToken(issuer: jwtSettings.ValidIssuer, audience: jwtSettings.ValidAudience, claims: GetClaims(model, out Id), notBefore: new DateTimeOffset(DateTime.UtcNow).DateTime, expires: new DateTimeOffset(expireTime).DateTime, signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256));
                 UserToken.Token = new JwtSecurityTokenHandler().WriteToken(JWToken);
                 UserToken.UserName = model.UserName;
-                UserToken.Id = model.Id;
+                UserToken.UserId = model.UserId;
                 return UserToken;
             }
             catch (Exception)
@@ -32,7 +32,7 @@ namespace PaymentGateway.Common
         public static IEnumerable<Claim> GetClaims(this UserTokens userAccounts, Guid Id)
         {
             IEnumerable<Claim> claims = new Claim[] {
-                new Claim("Id", userAccounts.Id.ToString()),
+                new Claim("Id", userAccounts.UserId.ToString()),
                     new Claim(ClaimTypes.Name, userAccounts.UserName),
                     new Claim(ClaimTypes.Email, userAccounts.Email),
                     new Claim(ClaimTypes.NameIdentifier, Id.ToString()),

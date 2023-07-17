@@ -1,17 +1,24 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PaymentGateway.Common;
 using PaymentGateway.DB;
+using PaymentGateway.Model.DbModel;
+using PaymentGateway.Services;
+using PaymentGateway.Services.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<PaymentContext>(options =>
-options.UseNpgsql(builder.Configuration.GetConnectionString("DBConnection"))
-);
 
+builder.Services.AddDbContextPool<PaymentContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DBConnection")));
+builder.Services.AddDbContext<PaymentContext>();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<PaymentContext>()
+                .AddDefaultTokenProviders();
+builder.Services.AddScoped<IAccount,Account>();
 //avoid the MultiPartBodyLength error.
 builder.Services.Configure<FormOptions>(o =>
 {

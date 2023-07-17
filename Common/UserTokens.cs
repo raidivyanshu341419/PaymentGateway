@@ -1,6 +1,8 @@
-﻿namespace PaymentGateway.Common
+﻿using static PaymentGateway.Common.CommonModel;
+
+namespace PaymentGateway.Common
 {
-    public class UserTokens
+    public class UserTokens : ResponseModel
     {
         public string? FullName
         {
@@ -27,7 +29,7 @@
             get;
             set;
         }
-        public string Id
+        public string UserId
         {
             get;
             set;
@@ -57,7 +59,7 @@
         }
         public string Role { get; set; }
         public string Status { get; set; }
-
         
+
     }
 }
